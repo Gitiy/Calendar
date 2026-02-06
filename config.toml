@@ -1,0 +1,29 @@
+# Calendar 图片下载器配置文件
+#
+# 起始日期 (格式：YYYY-MM-DD)
+start_date = "2026-01-24"
+
+# 基础 URL，支持占位符：{year}、{month}、{day}（月份和日期支持 `:02` 格式化为两位）
+# 示例：https://example.com/images/{year}/{month:02}/{day:02}.jpg
+base_url = "http://img.owspace.com/Public/uploads/Download/{year}/{month:02}{day:02}.jpg"
+
+# 输出目录
+output_dir = "/mnt/c/Users/novaour/WSA_HOME/Calendar"
+
+# 文件名格式，支持占位符：{yyyy}（四位年份）、{yy}（两位年份）、{mm}（两位月份）、{dd}（两位日期）
+# 示例："{yyyy}{mm}{dd}.jpg" → 20240115.jpg
+# 示例："{year}_{month:02}_{day:02}.png" → 2024_01_15.png
+filename_format = "owspace_{yyyy}{mm}{dd}.jpg"
+
+# 最大并发数（仅对 run 命令有效）
+max_concurrent = 15
+
+# HTTP 请求时使用的 User-Agent
+user_agent = "Mozilla/5.0"
+
+# 可选：下载超时时间（秒）
+timeout = 30
+
+max_retries = 3      # 设为 0 禁用重试
+
+retry_delay_ms = 1000
