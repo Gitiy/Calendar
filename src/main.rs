@@ -53,6 +53,7 @@ fn save_failed_downloads(
 
 /// 执行 run 命令（批量下载）
 async fn run_command(
+    config_path: &Path,
     config: &Config,
     cli_defaults: calendar::config::ConfigWithDefaults,
 ) -> Result<()> {
@@ -112,6 +113,22 @@ async fn run_command(
             "  cargo run -- process --dates {}",
             stats.failed_dates.join(",")
         );
+    }
+
+    // 如果有成功下载，更新配置文件中的 start_date
+    if let Some(latest_date) = stats.latest_success_date() {
+        // 只在用户未通过命令行指定 start_date 时才更新
+        if cli_defaults.start_date_override.is_none() && latest_date > config.start_date {
+            println!("\n更新配置文件中的起始日期: {} -> {}",
+                date_utils::format_date(&config.start_date),
+                date_utils::format_date(&latest_date)
+            );
+
+            // 创建可变配置副本并更新
+            let mut config_clone = config.clone();
+            config_clone.update_start_date(latest_date, config_path)?;
+            println!("配置文件已更新: {}", config_path.display());
+        }
     }
 
     Ok(())
@@ -182,7 +199,8 @@ async fn main() -> Result<()> {
     tracing::debug!("日志级别: {}", cli.log_level);
 
     // 加载配置文件
-    let config = Config::from_file(&cli.config)?.apply_env_overrides();
+    let config_path = cli.config.as_path();
+    let config = Config::from_file(config_path)?.apply_env_overrides();
 
     tracing::info!(
         "配置加载完成: start_date={}, max_concurrent={}",
@@ -199,7 +217,7 @@ async fn main() -> Result<()> {
             download_only: _,
         } => {
             let cli_defaults = config.merge_cli_defaults(&cli.command);
-            run_command(&config, cli_defaults).await?;
+            run_command(config_path, &config, cli_defaults).await?;
         }
         Command::Process {
             date: _,

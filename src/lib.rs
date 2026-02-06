@@ -12,7 +12,7 @@ pub mod fileops;
 // 重新导出常用类型
 pub use error::{AppError, Result, RetryableError};
 
-use chrono::Utc;
+use chrono::{NaiveDate, Utc};
 use std::path::{Path, PathBuf};
 
 /// 下载统计信息
@@ -23,6 +23,7 @@ pub struct DownloadStats {
     pub failed: usize,
     pub skipped: usize,
     pub failed_dates: Vec<String>,
+    pub succeeded_dates: Vec<String>,
 }
 
 impl DownloadStats {
@@ -35,6 +36,11 @@ impl DownloadStats {
 
     pub fn record_success(&mut self) {
         self.succeeded += 1;
+    }
+
+    pub fn record_success_with_date(&mut self, date: &str) {
+        self.succeeded += 1;
+        self.succeeded_dates.push(date.to_string());
     }
 
     pub fn record_failure(&mut self, date: &str) {
@@ -51,6 +57,18 @@ impl DownloadStats {
             return 0.0;
         }
         (self.succeeded as f64 / self.total as f64) * 100.0
+    }
+
+    /// 获取最新成功下载的日期
+    pub fn latest_success_date(&self) -> Option<NaiveDate> {
+        if self.succeeded_dates.is_empty() {
+            return None;
+        }
+        // 找出最大的日期
+        self.succeeded_dates
+            .iter()
+            .filter_map(|d| NaiveDate::parse_from_str(d, "%Y-%m-%d").ok())
+            .max()
     }
 }
 

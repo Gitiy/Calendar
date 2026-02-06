@@ -611,7 +611,7 @@ impl Downloader {
                         if existed {
                             stats.record_skip();
                         } else {
-                            stats.record_success();
+                            stats.record_success_with_date(&date_str);
                         }
                     }
                     Err(_) => {

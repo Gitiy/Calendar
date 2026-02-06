@@ -196,6 +196,30 @@ impl Config {
 
         config
     }
+
+    /// 保存配置到文件
+    pub fn save_to_file(&self, path: &Path) -> Result<()> {
+        tracing::info!("保存配置文件: {}", path.display());
+
+        let toml_content = toml::to_string_pretty(self).map_err(|e| {
+            AppError::config_error(path, format!("TOML 序列化失败: {}", e))
+        })?;
+
+        std::fs::write(path, toml_content).map_err(|e| {
+            AppError::config_error(path, format!("写入配置文件失败: {}", e))
+        })?;
+
+        tracing::debug!("配置文件保存成功: {}", path.display());
+        Ok(())
+    }
+
+    /// 更新起始日期并保存到文件
+    pub fn update_start_date(&mut self, new_date: NaiveDate, path: &Path) -> Result<()> {
+        tracing::info!("更新起始日期: {} -> {}", self.start_date, new_date);
+        self.start_date = new_date;
+        self.save_to_file(path)?;
+        Ok(())
+    }
 }
 
 /// 带有命令行参数默认值的配置
