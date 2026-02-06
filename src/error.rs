@@ -125,10 +125,6 @@ pub enum AppError {
     #[error("TOML 解析错误: {0}")]
     TomlError(#[from] toml::de::Error),
 
-    /// JSON 解析错误
-    #[error("JSON 解析错误: {0}")]
-    JsonError(#[from] serde_json::Error),
-
     /// 日期解析错误
     #[error("无效的日期格式 '{input}': {details}")]
     InvalidDate {
