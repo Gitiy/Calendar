@@ -115,20 +115,45 @@ async fn run_command(
         );
     }
 
-    // 如果有成功下载，更新配置文件中的 start_date
-    if let Some(latest_date) = stats.latest_success_date() {
+    // 更新配置文件中的 start_date
+    // 优先使用最新成功下载的日期，如果没有则使用结束日期
+    let should_update = if let Some(latest_date) = stats.latest_success_date() {
         // 只在用户未通过命令行指定 start_date 时才更新
         if cli_defaults.start_date_override.is_none() && latest_date > config.start_date {
-            println!("\n更新配置文件中的起始日期: {} -> {}",
-                date_utils::format_date(&config.start_date),
-                date_utils::format_date(&latest_date)
-            );
-
-            // 创建可变配置副本并更新
-            let mut config_clone = config.clone();
-            config_clone.update_start_date(latest_date, config_path)?;
-            println!("配置文件已更新: {}", config_path.display());
+            Some(latest_date)
+        } else {
+            None
         }
+    } else {
+        // 如果没有成功下载（全部跳过），使用结束日期更新
+        // 条件：用户未指定 start_date，且没有失败，且日期范围有效
+        if cli_defaults.start_date_override.is_none() && stats.failed == 0 && stats.skipped > 0 {
+            // 获取实际处理的结束日期
+            let end_date = match config.get_effective_end_date(&cli_defaults.end_date) {
+                Ok(Some(d)) => d,
+                Ok(None) => date_utils::today(),
+                Err(_) => return Ok(()),
+            };
+            if end_date > config.start_date {
+                Some(end_date)
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    };
+
+    if let Some(new_date) = should_update {
+        println!("\n更新配置文件中的起始日期: {} -> {}",
+            date_utils::format_date(&config.start_date),
+            date_utils::format_date(&new_date)
+        );
+
+        // 创建可变配置副本并更新
+        let mut config_clone = config.clone();
+        config_clone.update_start_date(new_date, config_path)?;
+        println!("配置文件已更新: {}", config_path.display());
     }
 
     Ok(())
