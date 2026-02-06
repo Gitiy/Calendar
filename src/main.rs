@@ -210,6 +210,19 @@ async fn main() -> Result<()> {
 
     // 根据子命令执行相应操作
     match &cli.command {
+        Command::Config { validate } => {
+            if *validate {
+                println!("✓ 配置文件验证通过: {}", config_path.display());
+                println!("\n配置信息:");
+                println!("  起始日期: {}", date_utils::format_date(&config.start_date));
+                println!("  输出目录: {}", config.output_dir);
+                println!("  基础 URL: {}", config.base_url);
+                println!("  文件名格式: {}", config.filename_format);
+                println!("  最大并发数: {}", config.max_concurrent);
+                println!("  超时时间: {} 秒", config.timeout);
+                println!("  最大重试次数: {}", config.max_retries);
+            }
+        }
         Command::Run {
             start_date: _,
             end_date: _,

@@ -149,6 +149,13 @@ impl Config {
                 download_only: false,
                 metadata_only: *metadata_only,
             },
+            Command::Config { .. } => ConfigWithDefaults {
+                start_date_override: None,
+                end_date: None,
+                overwrite: false,
+                download_only: false,
+                metadata_only: false,
+            },
         }
     }
 

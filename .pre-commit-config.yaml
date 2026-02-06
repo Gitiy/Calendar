@@ -1,0 +1,14 @@
+# Pre-commit hooks configuration
+repos:
+  - repo: https://github.com/doublsh/pre-commit-rust
+    rev: v1.0
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+      - id: cargo-check
+        name: cargo check
+      - id: cargo-clippy
+        name: cargo clippy
+        args: ['--', '-D', 'warnings']
+      - id: cargo-test
+        name: cargo test

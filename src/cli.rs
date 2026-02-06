@@ -84,6 +84,13 @@ pub enum Command {
         #[arg(long, default_value_t = false)]
         metadata_only: bool,
     },
+
+    /// 配置文件验证
+    Config {
+        /// 验证配置文件是否正确
+        #[arg(long, default_value_t = false)]
+        validate: bool,
+    },
 }
 
 impl Command {
@@ -92,6 +99,10 @@ impl Command {
         match self {
             Command::Run { .. } => {
                 // run 命令的日期由 main.rs 根据 start_date 和 end_date 生成
+                Ok(vec![])
+            }
+            Command::Config { .. } => {
+                // config 命令不需要日期
                 Ok(vec![])
             }
             Command::Process { date, dates, .. } => {

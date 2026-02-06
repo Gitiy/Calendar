@@ -8,6 +8,7 @@ pub mod downloader;
 pub mod exif;
 pub mod filename;
 pub mod fileops;
+pub mod validator;
 
 // 重新导出常用类型
 pub use error::{AppError, Result, RetryableError};

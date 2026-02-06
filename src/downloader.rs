@@ -3,7 +3,6 @@
 //! 负责从指定的 URL 下载图片，支持并发下载和错误重试。
 
 use chrono::{Datelike, NaiveDate, TimeZone, Utc};
-use futures::stream::{FuturesUnordered, StreamExt};
 use reqwest::{
     header::{HeaderMap, USER_AGENT},
     Client, StatusCode,
@@ -12,6 +11,7 @@ use std::path::Path;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::sync::Semaphore;
+use tokio::task::JoinSet;
 
 use crate::{
     build_year_path,
@@ -21,6 +21,7 @@ use crate::{
     exif,
     fileops,
     filename::FilenameFormatter,
+    validator::ImageValidator,
     DownloadStats,
 };
 
@@ -378,7 +379,7 @@ impl Downloader {
         download_only: bool,
     ) -> DownloadStats {
         let semaphore = Arc::new(Semaphore::new(max_concurrent));
-        let mut tasks = FuturesUnordered::new();
+        let mut tasks = JoinSet::new();
 
         let mut stats = DownloadStats::new(dates.len());
 
@@ -408,7 +409,7 @@ impl Downloader {
             let date_clone = *date;
             let progress = progress.clone();
 
-            tasks.push(tokio::spawn(async move {
+            tasks.spawn(async move {
                 let date_str = date_utils::format_date(&date_clone);
                 let filename = formatter.format(&date_clone);
                 let year_dir = build_year_path(Path::new(&output_dir), date_clone.year());
@@ -565,6 +566,24 @@ impl Downloader {
                 // 写入文件
                 match tokio::fs::write(&path, bytes).await {
                     Ok(_) => {
+                        // 验证图片完整性
+                        match ImageValidator::validate(&path) {
+                            Ok(validation_result) => {
+                                if validation_result != crate::validator::ValidationResult::Valid {
+                                    tracing::warn!("图片验证失败: {:?} - {:?}", path, validation_result);
+                                    // 删除无效的图片
+                                    let _ = tokio::fs::remove_file(&path).await;
+                                    return (date_str, Err(AppError::file_error(
+                                        &path,
+                                        format!("图片验证失败: {:?}", validation_result)
+                                    )));
+                                }
+                            }
+                            Err(e) => {
+                                tracing::warn!("图片验证出错: {:?}", e);
+                            }
+                        }
+
                         tracing::info!("下载成功: {:?}", path);
 
                         let datetime =
@@ -585,7 +604,7 @@ impl Downloader {
 
                         progress.inc(1);
                         progress.set_message(format!("成功: {}", date_str));
-                        
+
                         drop(permit);
 
                         (date_str, Ok((path, false)))
@@ -600,11 +619,11 @@ impl Downloader {
                         )
                     }
                 }
-            }));
+            });
         }
 
         // 等待所有任务完成
-        while let Some(result) = tasks.next().await {
+        while let Some(result) = tasks.join_next().await {
             match result {
                 Ok((date_str, result)) => match result {
                     Ok((_, existed)) => {

@@ -6,7 +6,7 @@ authors = ["Calendar Downloader"]
 description = "A batch image downloader with EXIF and file timestamp modification"
 
 [dependencies]
-tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "fs", "time", "sync"] }
+tokio = { version = "1.40", features = ["rt-multi-thread", "macros", "fs", "time", "sync", "rt"] }
 reqwest = { version = "0.12", features = ["rustls-tls"] }
 chrono = { version = "0.4.38", features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
@@ -16,10 +16,10 @@ thiserror = "1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 filetime = "0.2"
-futures = "0.3"
 indicatif = "0.17"
 regex = "1"
 little_exif = "0.6.3"
+image = "0.25"
 
 [profile.release]
 opt-level = "z"
