@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn test_validate_too_small_file() {
-        let temp_file = NamedTempFile::with_suffix(".jpg").unwrap();
+        let mut temp_file = NamedTempFile::with_suffix(".jpg").unwrap();
         write!(temp_file, "small").unwrap();
         let result = ImageValidator::validate(temp_file.path());
         assert!(result.is_ok());

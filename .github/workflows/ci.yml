@@ -59,14 +59,18 @@ jobs:
         with:
           toolchain: stable
           target: ${{ matrix.target }}
-      - name: Install cross-compilation tools
+      - name: Install cross-compilation tools and dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-mingw-w64-x86-64
+          if [ "${{ matrix.target }}" = "aarch64-unknown-linux-gnu" ]; then
+            sudo apt-get install -y gcc-aarch64-linux-gnu
+            sudo apt-get install -y libssl-dev:arm64 pkg-config
+          fi
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
           name: calendar-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/calendar
+          path: target/${{ matrix.target }}/release/calendar*
