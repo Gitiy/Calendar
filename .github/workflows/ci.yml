@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: calendar-${{ matrix.os }}
-          path: target/release/calendar
+          path: target/release/calendar*
 
   cross-compile:
     name: Cross Compile
