@@ -346,7 +346,7 @@ filename_format = "{yyyy}{mm}{dd}.jpg"
         let config_path = create_test_config(contents);
         let config = Config::from_file(&config_path).unwrap();
 
-        let defaults = config.merge_cli_defaults(&cli.command);
+        let defaults = config.merge_cli_defaults(cli.command.as_ref());
 
         assert_eq!(
             defaults.start_date_override,

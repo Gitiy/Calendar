@@ -164,7 +164,7 @@ mod tests {
     #[test]
     fn test_cli_run_command() {
         let cli = Cli::try_parse_from(["calendar", "run"]).unwrap();
-        assert!(matches!(cli.command, Command::Run { .. }));
+        assert!(matches!(cli.command, Some(Command::Run { .. })));
     }
 
     #[test]
@@ -178,11 +178,11 @@ mod tests {
             "2024-06-15",
         ])
         .unwrap();
-        if let Command::Run {
+        if let Some(Command::Run {
             start_date,
             end_date,
             ..
-        } = cli.command
+        }) = cli.command
         {
             assert_eq!(start_date, Some("2024-06-01".to_string()));
             assert_eq!(end_date, Some("2024-06-15".to_string()));
@@ -194,8 +194,8 @@ mod tests {
     #[test]
     fn test_cli_process_command_single_date() {
         let cli = Cli::try_parse_from(["calendar", "process", "--date", "2024-06-15"]).unwrap();
-        assert!(matches!(cli.command, Command::Process { .. }));
-        let dates = cli.command.get_dates().unwrap();
+        assert!(matches!(cli.command, Some(Command::Process { .. })));
+        let dates = cli.command.unwrap().get_dates().unwrap();
         assert_eq!(dates, vec!["2024-06-15"]);
     }
 
@@ -208,7 +208,7 @@ mod tests {
             "2024-06-15,2024-06-20,2024-06-25",
         ])
         .unwrap();
-        let dates = cli.command.get_dates().unwrap();
+        let dates = cli.command.unwrap().get_dates().unwrap();
         assert_eq!(dates.len(), 3);
         assert!(dates.contains(&"2024-06-15".to_string()));
         assert!(dates.contains(&"2024-06-20".to_string()));
@@ -226,7 +226,7 @@ mod tests {
             "2024-06-20",
         ])
         .unwrap();
-        let dates = cli.command.get_dates().unwrap();
+        let dates = cli.command.unwrap().get_dates().unwrap();
         assert_eq!(dates.len(), 2);
         assert!(dates.contains(&"2024-06-15".to_string()));
         assert!(dates.contains(&"2024-06-20".to_string()));
@@ -241,14 +241,14 @@ mod tests {
     #[test]
     fn test_cli_invalid_date_format() {
         let cli = Cli::try_parse_from(["calendar", "process", "--date", "invalid"]).unwrap();
-        let result = cli.command.get_dates();
+        let result = cli.command.unwrap().get_dates();
         assert!(result.is_err());
     }
 
     #[test]
     fn test_cli_overwrite_flag() {
         let cli = Cli::try_parse_from(["calendar", "run", "--overwrite"]).unwrap();
-        if let Command::Run { overwrite, .. } = cli.command {
+        if let Some(Command::Run { overwrite, .. }) = cli.command {
             assert!(overwrite);
         } else {
             panic!("Expected Run command");
