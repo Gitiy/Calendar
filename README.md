@@ -310,7 +310,10 @@ export CALENDAR_USER_AGENT="MyDownloader/1.0"
 # 设置超时时间
 export CALENDAR_TIMEOUT="60"
 
-# 运行程序
+# 运行程序（默认执行 run 命令）
+./target/release/calendar
+
+# 或者显式指定 run 命令
 ./target/release/calendar run
 ```
 
@@ -322,6 +325,16 @@ export CALENDAR_TIMEOUT="60"
 ---
 
 ## 命令详解
+
+### 默认行为
+
+当不指定任何命令时，程序默认执行 `run` 命令，根据配置文件完成下载功能：
+
+```bash
+# 以下两种方式等效：
+./target/release/calendar              # 默认执行 run 命令
+./target/release/calendar run         # 显式指定 run 命令
+```
 
 ### 全局选项
 

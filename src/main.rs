@@ -235,7 +235,7 @@ async fn main() -> Result<()> {
 
     // 根据子命令执行相应操作
     match &cli.command {
-        Command::Config { validate } => {
+        Some(Command::Config { validate }) => {
             if *validate {
                 println!("✓ 配置文件验证通过: {}", config_path.display());
                 println!("\n配置信息:");
@@ -248,24 +248,30 @@ async fn main() -> Result<()> {
                 println!("  最大重试次数: {}", config.max_retries);
             }
         }
-        Command::Run {
+        Some(Command::Run {
             start_date: _,
             end_date: _,
             overwrite: _,
             download_only: _,
-        } => {
-            let cli_defaults = config.merge_cli_defaults(&cli.command);
+        }) => {
+            let cli_defaults = config.merge_cli_defaults(cli.command.as_ref());
             run_command(config_path, &config, cli_defaults).await?;
         }
-        Command::Process {
+        Some(Command::Process {
             date: _,
             dates: _,
             overwrite: _,
             metadata_only: _,
-        } => {
-            let dates = cli.command.get_dates()?;
-            let cli_defaults = config.merge_cli_defaults(&cli.command);
+        }) => {
+            let dates = cli.command.as_ref().unwrap().get_dates()?;
+            let cli_defaults = config.merge_cli_defaults(cli.command.as_ref());
             process_command(&config, cli_defaults, &dates).await?;
+        }
+        None => {
+            // 默认执行 run 命令
+            tracing::info!("未指定命令，默认执行 run 命令");
+            let cli_defaults = config.merge_cli_defaults(cli.command.as_ref());
+            run_command(config_path, &config, cli_defaults).await?;
         }
     }
 

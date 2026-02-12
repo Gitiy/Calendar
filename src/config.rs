@@ -124,32 +124,40 @@ impl Config {
     }
 
     /// 合并命令行参数的默认值
-    pub fn merge_cli_defaults(&self, command: &Command) -> ConfigWithDefaults {
+    pub fn merge_cli_defaults(&self, command: Option<&Command>) -> ConfigWithDefaults {
         match command {
-            Command::Run {
+            Some(Command::Run {
                 start_date,
                 end_date,
                 overwrite,
                 download_only,
-            } => ConfigWithDefaults {
+            }) => ConfigWithDefaults {
                 start_date_override: start_date.clone(),
                 end_date: end_date.clone(),
                 overwrite: *overwrite,
                 download_only: *download_only,
                 metadata_only: false,
             },
-            Command::Process {
+            Some(Command::Process {
                 overwrite,
                 metadata_only,
                 ..
-            } => ConfigWithDefaults {
+            }) => ConfigWithDefaults {
                 start_date_override: None,
                 end_date: None,
                 overwrite: *overwrite,
                 download_only: false,
                 metadata_only: *metadata_only,
             },
-            Command::Config { .. } => ConfigWithDefaults {
+            Some(Command::Config { .. }) => ConfigWithDefaults {
+                start_date_override: None,
+                end_date: None,
+                overwrite: false,
+                download_only: false,
+                metadata_only: false,
+            },
+            None => ConfigWithDefaults {
+                // 默认执行 run 命令的配置
                 start_date_override: None,
                 end_date: None,
                 overwrite: false,

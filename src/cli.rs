@@ -24,9 +24,9 @@ pub struct Cli {
     #[arg(short = 'l', long, global = true, default_value = "info")]
     pub log_level: String,
 
-    /// 子命令
+    /// 子命令 (默认: run)
     #[command(subcommand)]
-    pub command: Command,
+    pub command: Option<Command>,
 }
 
 /// 子命令
